@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
 // Sync database and start server
 const startServer = async () => {
   try {
-    await mongoose.connect('mongodb://localhost:27017/codeforge');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/codeforge');
     console.log('MongoDB connected.');
     
     app.listen(PORT, () => {
