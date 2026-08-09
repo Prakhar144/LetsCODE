@@ -36,11 +36,11 @@ app.get('/', (req, res) => {
 // Sync database and start server
 const startServer = async () => {
   try {
-    let mongoUri = process.env.MONGODB_URI;
+    let mongoUri = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/codeforge';
     let usingMemoryDb = false;
 
     // Use a temporary in-memory database if no valid MongoDB URI is provided
-    if (!mongoUri || mongoUri.includes('cluster0.mongodb.net') || mongoUri.includes('YOUR-ACTUAL-CLUSTER-URL')) {
+    if (mongoUri === 'memory' || mongoUri.includes('cluster0.mongodb.net') || mongoUri.includes('YOUR-ACTUAL-CLUSTER-URL')) {
       console.log('Starting temporary in-memory database for Render...');
       const { MongoMemoryServer } = await import('mongodb-memory-server');
       const mongod = await MongoMemoryServer.create();
