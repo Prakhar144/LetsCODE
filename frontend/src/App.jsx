@@ -34,7 +34,7 @@ function App() {
   useEffect(() => {
     if (user) {
       // Fetch problems for global search
-      axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/code/problems`)
+      axios.get(`${import.meta.env.VITE_API_URL || 'https://letscode-1-08lv.onrender.com'}/code/problems`)
         .then(res => setAllProblems(res.data))
         .catch(err => console.error(err));
     }
