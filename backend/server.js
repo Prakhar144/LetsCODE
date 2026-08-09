@@ -11,6 +11,7 @@ import adminRoutes from './routes/admin.js';
 import codeRoutes from './routes/code.js';
 import discussRoutes from './routes/discuss.js';
 import feedRoutes from './routes/feed.js';
+import { seedDatabaseData } from './seed.js';
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.get('/', (req, res) => {
 const startServer = async () => {
   try {
     let mongoUri = process.env.MONGODB_URI;
+    let usingMemoryDb = false;
 
     // Use a temporary in-memory database if no valid MongoDB URI is provided
     if (!mongoUri || mongoUri.includes('cluster0.mongodb.net') || mongoUri.includes('YOUR-ACTUAL-CLUSTER-URL')) {
@@ -42,12 +44,18 @@ const startServer = async () => {
       const { MongoMemoryServer } = await import('mongodb-memory-server');
       const mongod = await MongoMemoryServer.create();
       mongoUri = mongod.getUri();
+      usingMemoryDb = true;
     } else {
       mongoUri = mongoUri || 'mongodb://localhost:27017/codeforge';
     }
 
     await mongoose.connect(mongoUri);
     console.log('MongoDB connected.');
+    
+    if (usingMemoryDb) {
+      console.log('Populating temporary database with 500 problems...');
+      await seedDatabaseData();
+    }
     
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
