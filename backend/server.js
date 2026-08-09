@@ -77,6 +77,20 @@ const startServer = async () => {
     // Downgrade any other admins
     await User.updateMany({ email: { $ne: adminEmail } }, { $set: { is_admin: false } });
     
+    // Ensure Prakhar test user exists so the user doesn't have to keep registering
+    let prakharUser = await User.findOne({ username: 'Prakhar' });
+    if (!prakharUser) {
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash('123456', salt);
+      await User.create({
+        username: 'Prakhar',
+        email: 'prakhar@example.com',
+        password_hash,
+        is_admin: false
+      });
+      console.log('Default Prakhar user created.');
+    }
+    
     if (usingMemoryDb) {
       console.log('Populating temporary database with 500 problems...');
       await seedDatabaseData();
