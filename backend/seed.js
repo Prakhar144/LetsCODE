@@ -27,7 +27,7 @@ export const seedDatabaseData = async () => {
       await Problem.findOneAndUpdate(
         { title: newProblem.title },
         { $set: newProblem },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
       count++;
     }
