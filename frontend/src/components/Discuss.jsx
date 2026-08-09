@@ -20,6 +20,22 @@ export default function Discuss() {
   const [replyContent, setReplyContent] = useState('');
   const [isReplying, setIsReplying] = useState(false);
 
+  const getCurrentUser = () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload).sub;
+    } catch (e) {
+      return null;
+    }
+  };
+  const currentUser = getCurrentUser();
+
   const fetchPosts = async () => {
     try {
       const res = await axios.get(`${API_URL}/discuss`);
@@ -114,6 +130,20 @@ export default function Discuss() {
       alert('Failed to reply. Are you logged in?');
     } finally {
       setIsReplying(false);
+    }
+  };
+
+  const handleDeletePost = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this broadcast?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/discuss/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchPosts();
+    } catch (err) {
+      console.error('Failed to delete post', err);
+      alert('Failed to delete broadcast');
     }
   };
 
@@ -241,6 +271,12 @@ export default function Discuss() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-5.368m0 5.368l3 1.62m-3-1.62l-3 1.62m5.368-5.368l3-1.62m-3 1.62l-3-1.62m5.368 5.368l3-1.62m-3 1.62l-3-1.62M12 18h.01M12 6h.01"></path></svg>
                           Share
                         </button>
+                        {currentUser === post.author && (
+                          <button onClick={() => handleDeletePost(post._id)} className="flex items-center gap-1.5 hover:text-red-500 transition-colors group ml-auto text-rose-500/70 hover:text-rose-500">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

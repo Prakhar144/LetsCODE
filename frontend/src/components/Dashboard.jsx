@@ -8,7 +8,7 @@ const API_URL = 'http://localhost:8000';
 export default function Dashboard() {
   const navigate = useNavigate();
   const [problems, setProblems] = useState([]);
-  const [solvedIds, setSolvedIds] = useState(new Set());
+  const [solvedIds, setSolvedIds] = useState({});
   const [favoriteIds, setFavoriteIds] = useState(new Set());
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -62,7 +62,7 @@ export default function Dashboard() {
         ]);
 
         setProblems(problemsRes.data);
-        setSolvedIds(new Set(progressRes.data.solved));
+        setSolvedIds(progressRes.data.solved || {});
         if (progressRes.data.favorites) {
           setFavoriteIds(new Set(progressRes.data.favorites));
         }
@@ -178,7 +178,7 @@ export default function Dashboard() {
               </div>
               <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">Ready to level up?</h2>
               <p className="text-blue-100/70 text-lg max-w-xl mb-6">
-                You have successfully conquered <strong className="text-white">{solvedIds.size}</strong> challenges. Consistency is the key to mastery—dive into your next problem below!
+                You have successfully conquered <strong className="text-white">{Object.keys(solvedIds).length}</strong> challenges. Consistency is the key to mastery—dive into your next problem below!
               </p>
               <div className="flex justify-center md:justify-start gap-4">
                 <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center gap-2">
@@ -192,7 +192,7 @@ export default function Dashboard() {
             <div className="shrink-0 relative w-40 h-40 bg-black/20 rounded-full border border-white/5 flex items-center justify-center backdrop-blur-md shadow-2xl">
               <svg className="absolute inset-0 w-full h-full transform -rotate-90">
                 <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
-                <circle cx="80" cy="80" r="70" fill="none" stroke="url(#blue-gradient)" strokeWidth="10" strokeDasharray="439.8" strokeDashoffset={439.8 - ((solvedIds.size / Math.max(problems.length, 1)) * 439.8)} strokeLinecap="round" className="transition-all duration-1500 ease-out drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                <circle cx="80" cy="80" r="70" fill="none" stroke="url(#blue-gradient)" strokeWidth="10" strokeDasharray="439.8" strokeDashoffset={439.8 - ((Object.keys(solvedIds).length / Math.max(problems.length, 1)) * 439.8)} strokeLinecap="round" className="transition-all duration-1500 ease-out drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                 <defs>
                   <linearGradient id="blue-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stopColor="#3B82F6" />
@@ -202,7 +202,7 @@ export default function Dashboard() {
               </svg>
               <div className="text-center">
                 <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 drop-shadow-sm">
-                  {Math.round((solvedIds.size / Math.max(problems.length, 1)) * 100)}%
+                  {Math.round((Object.keys(solvedIds).length / Math.max(problems.length, 1)) * 100)}%
                 </div>
                 <div className="text-[10px] text-blue-300/70 font-bold uppercase tracking-[0.2em] mt-1">Completed</div>
               </div>
@@ -271,8 +271,11 @@ export default function Dashboard() {
                     filteredProblems.map(p => (
                       <tr key={p._id} className="border-b border-white/5 hover:bg-white/5 transition-all group cursor-pointer" onClick={() => navigate(`/problems/${p._id}`)}>
                         <td className="py-4 px-4 text-center">
-                          {solvedIds.has(p._id) ? (
-                            <svg className="w-5 h-5 text-green-500 mx-auto drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                          {solvedIds[p._id] !== undefined ? (
+                            <div className="flex flex-col items-center justify-center">
+                              <svg className="w-5 h-5 text-green-500 mx-auto drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                              <span className={`text-[10px] font-bold mt-1 ${solvedIds[p._id] === 100 ? 'text-green-500' : 'text-yellow-500'}`}>{solvedIds[p._id]}%</span>
+                            </div>
                           ) : (
                             <span className="text-gray-600">○</span>
                           )}

@@ -13,7 +13,16 @@ const userSchema = new mongoose.Schema({
   },
   password_hash: {
     type: String,
-    required: true,
+  },
+  googleId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  githubId: {
+    type: String,
+    sparse: true,
+    unique: true
   },
   is_admin: {
     type: Boolean,

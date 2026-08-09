@@ -41,11 +41,11 @@ export default function Profile() {
     );
   }
 
-  // Mock total numbers for calculations
-  const totalEasy = 1000;
-  const totalMedium = 2000;
-  const totalHard = 1013;
-  const totalProblems = 4013;
+  // Dynamically populated from backend stats
+  const totalEasy = stats.totalEasy || 0;
+  const totalMedium = stats.totalMedium || 0;
+  const totalHard = stats.totalHard || 0;
+  const totalProblems = stats.totalProblems || 0;
 
   const getStrokeDashoffset = (percent, circumference) => {
     return circumference - (percent / 100) * circumference;
@@ -130,7 +130,7 @@ export default function Profile() {
           <div className="glass-card p-6 flex flex-col items-center justify-center border-t border-t-white/10 lg:col-span-1">
             <h3 className="text-slate-400 font-semibold mb-6 uppercase tracking-wider text-sm">Solved Problems</h3>
             <CircleProgress 
-              percent={stats.totalSolved > 0 ? (stats.totalSolved / totalProblems) * 100 : 0} 
+              percent={stats.totalSolved > 0 && totalProblems > 0 ? (stats.totalSolved / totalProblems) * 100 : 0} 
               color="#3B82F6" 
               size={200} 
               strokeWidth={12}
@@ -152,7 +152,7 @@ export default function Profile() {
                   <span className="text-slate-400"><span className="text-white font-semibold">{stats.easySolved}</span> / {totalEasy}</span>
                 </div>
                 <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden shadow-inner">
-                  <div className="bg-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${(stats.easySolved / totalEasy) * 100}%` }}></div>
+                  <div className="bg-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${totalEasy > 0 ? (stats.easySolved / totalEasy) * 100 : 0}%` }}></div>
                 </div>
               </div>
 
@@ -163,7 +163,7 @@ export default function Profile() {
                   <span className="text-slate-400"><span className="text-white font-semibold">{stats.mediumSolved}</span> / {totalMedium}</span>
                 </div>
                 <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden shadow-inner">
-                  <div className="bg-amber-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(245,158,11,0.5)]" style={{ width: `${(stats.mediumSolved / totalMedium) * 100}%` }}></div>
+                  <div className="bg-amber-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(245,158,11,0.5)]" style={{ width: `${totalMedium > 0 ? (stats.mediumSolved / totalMedium) * 100 : 0}%` }}></div>
                 </div>
               </div>
 
@@ -174,7 +174,7 @@ export default function Profile() {
                   <span className="text-slate-400"><span className="text-white font-semibold">{stats.hardSolved}</span> / {totalHard}</span>
                 </div>
                 <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden shadow-inner">
-                  <div className="bg-rose-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(244,63,94,0.5)]" style={{ width: `${(stats.hardSolved / totalHard) * 100}%` }}></div>
+                  <div className="bg-rose-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(244,63,94,0.5)]" style={{ width: `${totalHard > 0 ? (stats.hardSolved / totalHard) * 100 : 0}%` }}></div>
                 </div>
               </div>
             </div>
@@ -207,10 +207,12 @@ export default function Profile() {
                       <td className="py-4 px-6 text-center font-medium">
                         {sub.status === 'Accepted' ? (
                           <span className="text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">Accepted</span>
+                        ) : sub.status === 'Partially Accepted' ? (
+                          <span className="text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]">Partially Accepted</span>
                         ) : sub.status === 'Wrong Answer' ? (
                           <span className="text-rose-400">Wrong Answer</span>
                         ) : (
-                          <span className="text-amber-400">{sub.status}</span>
+                          <span className="text-slate-400">{sub.status}</span>
                         )}
                       </td>
                       <td className="py-4 px-6">

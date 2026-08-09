@@ -157,6 +157,31 @@ const executeCode = async (code, language, inputStr) => {
   });
 };
 
+const calculateSimilarityPercentage = (s1, s2) => {
+  if (s1 === s2) return 100;
+  if (!s1 || !s2) return 0;
+  const len1 = s1.length;
+  const len2 = s2.length;
+  const matrix = Array(len2 + 1).fill(null).map(() => Array(len1 + 1).fill(null));
+
+  for (let i = 0; i <= len1; i++) matrix[0][i] = i;
+  for (let j = 0; j <= len2; j++) matrix[j][0] = j;
+
+  for (let j = 1; j <= len2; j++) {
+    for (let i = 1; i <= len1; i++) {
+      const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
+      matrix[j][i] = Math.min(
+        matrix[j][i - 1] + 1,
+        matrix[j - 1][i] + 1,
+        matrix[j - 1][i - 1] + indicator
+      );
+    }
+  }
+  const distance = matrix[len2][len1];
+  const maxLen = Math.max(len1, len2);
+  return Math.max(0, Math.round((1 - distance / maxLen) * 100));
+};
+
 router.post('/submit', authenticate, async (req, res) => {
   const { problem_id, code, language = 'python', run_only = false } = req.body;
   try {
@@ -182,9 +207,10 @@ router.post('/submit', authenticate, async (req, res) => {
     }
 
     let passed = 0;
+    let totalSimilarity = 0;
     const total = test_cases.length;
     let results = [];
-    let overallStatus = 'Accepted';
+    let overallErrorStatus = null;
 
     for (let i = 0; i < test_cases.length; i++) {
       const tc = test_cases[i];
@@ -205,19 +231,25 @@ router.post('/submit', authenticate, async (req, res) => {
         actual: execResult.stdout ? execResult.stdout.trim() : '',
         stderr: execResult.stderr,
         passed: false,
+        similarity: 0,
         error: execResult.error
       };
 
       if (execResult.success) {
-        if (tcResult.actual === expectedOut) {
+        const sim = calculateSimilarityPercentage(tcResult.actual, expectedOut);
+        tcResult.similarity = sim;
+        totalSimilarity += sim;
+
+        if (sim === 100) {
           tcResult.passed = true;
           passed++;
+        } else if (sim > 0) {
+          tcResult.error = 'Partially Correct';
         } else {
           tcResult.error = 'Wrong Answer';
-          overallStatus = 'Wrong Answer';
         }
       } else {
-        overallStatus = execResult.error; // 'Runtime Error' or 'Time Limit Exceeded'
+        if (!overallErrorStatus) overallErrorStatus = execResult.error;
       }
 
       results.push(tcResult);
@@ -226,11 +258,18 @@ router.post('/submit', authenticate, async (req, res) => {
       // but let's run all for detailed feedback.
     }
 
-    if (passed < total && overallStatus === 'Accepted') {
+    const score = total > 0 ? Math.round(totalSimilarity / total) : 0;
+    
+    let overallStatus = 'Accepted';
+    if (overallErrorStatus) {
+      overallStatus = overallErrorStatus;
+    } else if (score === 100 && passed === total) {
+      overallStatus = 'Accepted';
+    } else if (score > 0) {
+      overallStatus = 'Partially Accepted';
+    } else {
       overallStatus = 'Wrong Answer';
     }
-
-    const score = total > 0 ? Math.round((passed / total) * 100) : 0;
 
     // Only save submission if it's not a "run_only" request
     if (!run_only) {
@@ -246,7 +285,7 @@ router.post('/submit', authenticate, async (req, res) => {
 
     // Streak Logic
     let newStreak = req.user.streak || 0;
-    if (!run_only && overallStatus === 'Accepted') {
+    if (!run_only && (overallStatus === 'Accepted' || overallStatus === 'Partially Accepted')) {
       const now = new Date();
       const lastSolved = req.user.last_solved_date;
       
@@ -276,7 +315,10 @@ router.post('/submit', authenticate, async (req, res) => {
         }
         req.user.streak = newStreak;
         req.user.last_solved_date = now;
-        await req.user.save();
+        await req.user.constructor.updateOne(
+          { _id: req.user._id },
+          { $set: { streak: newStreak, last_solved_date: now } }
+        );
       }
     }
 
@@ -291,7 +333,7 @@ router.post('/submit', authenticate, async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ detail: 'Server error' });
+    res.status(500).json({ detail: error.message, stack: error.stack });
   }
 });
 
@@ -311,7 +353,7 @@ router.get('/submissions/:problem_id', authenticate, async (req, res) => {
 // Get global recent submissions
 router.get('/recent-submissions', async (req, res) => {
   try {
-    const submissions = await Submission.find({ status: 'Accepted' })
+    const submissions = await Submission.find({ status: { $in: ['Accepted', 'Partially Accepted'] } })
       .sort({ created_at: -1 })
       .limit(10)
       .populate('problem_id', 'title difficulty');
@@ -327,11 +369,19 @@ router.get('/my-progress', authenticate, async (req, res) => {
   try {
     const submissions = await Submission.find({ 
       user_id: req.user._id, 
-      status: 'Accepted' 
-    }, 'problem_id');
-    const solvedProblemIds = [...new Set(submissions.map(s => s.problem_id.toString()))];
+      status: { $in: ['Accepted', 'Partially Accepted'] } 
+    }, 'problem_id score');
+    
+    const solvedMap = {};
+    submissions.forEach(s => {
+      const pid = s.problem_id.toString();
+      if (solvedMap[pid] === undefined || s.score > solvedMap[pid]) {
+        solvedMap[pid] = s.score !== undefined ? s.score : 100; // fallback to 100 for old submissions
+      }
+    });
+
     res.json({ 
-      solved: solvedProblemIds,
+      solved: solvedMap,
       favorites: req.user.favorites || []
     });
   } catch (error) {
@@ -372,6 +422,11 @@ router.get('/user-stats', authenticate, async (req, res) => {
   try {
     const submissions = await Submission.find({ user_id: req.user._id })
       .populate('problem_id', 'title difficulty');
+
+    const totalEasy = await Problem.countDocuments({ difficulty: 'Easy' });
+    const totalMedium = await Problem.countDocuments({ difficulty: 'Medium' });
+    const totalHard = await Problem.countDocuments({ difficulty: 'Hard' });
+    const totalProblems = await Problem.countDocuments();
       
     const solvedSet = new Set();
     const stats = {
@@ -380,13 +435,17 @@ router.get('/user-stats', authenticate, async (req, res) => {
       easySolved: 0,
       mediumSolved: 0,
       hardSolved: 0,
+      totalProblems,
+      totalEasy,
+      totalMedium,
+      totalHard,
       recentSubmissions: [],
       streak: req.user.streak || 0 // use real streak
     };
 
     // Calculate solved stats based on Accepted submissions
     submissions.forEach(sub => {
-      if (sub.status === 'Accepted' && sub.problem_id) {
+      if ((sub.status === 'Accepted' || sub.status === 'Partially Accepted') && sub.problem_id) {
         const pId = sub.problem_id._id.toString();
         if (!solvedSet.has(pId)) {
           solvedSet.add(pId);

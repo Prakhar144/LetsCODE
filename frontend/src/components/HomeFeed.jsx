@@ -13,6 +13,22 @@ export default function HomeFeed() {
   const [imageUrl, setImageUrl] = useState('');
   const [isPosting, setIsPosting] = useState(false);
 
+  const getCurrentUser = () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload).sub;
+    } catch (e) {
+      return null;
+    }
+  };
+  const currentUser = getCurrentUser();
+
   const fetchFeed = async () => {
     try {
       const res = await axios.get(`${API_URL}/feed`);
@@ -50,6 +66,20 @@ export default function HomeFeed() {
       alert('Failed to post. Are you logged in?');
     } finally {
       setIsPosting(false);
+    }
+  };
+
+  const handleDeletePost = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/feed/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchFeed();
+    } catch (err) {
+      console.error('Failed to delete post', err);
+      alert('Failed to delete post');
     }
   };
 
@@ -127,6 +157,12 @@ export default function HomeFeed() {
                         <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                         <span className="text-sm font-medium">{item.likes || 0}</span>
                       </button>
+                      {currentUser === item.author && (
+                        <button onClick={() => handleDeletePost(item.id)} className="flex items-center gap-1.5 hover:text-red-500 transition-colors group ml-auto">
+                          <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                          <span className="text-sm font-medium">Delete</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : (

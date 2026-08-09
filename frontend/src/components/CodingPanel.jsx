@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
+import ReactMarkdown from 'react-markdown';
 
 const API_URL = 'http://localhost:8000';
 
@@ -91,7 +92,7 @@ export default function CodingPanel({ user, setUser }) {
         }
       }
     } catch (err) {
-      setResult({ status: 'System Error', message: err.message, results: [] });
+      setResult({ status: 'System Error', message: err.response?.data?.detail || err.message, results: [] });
     } finally {
       setLoading(false);
     }
@@ -100,9 +101,9 @@ export default function CodingPanel({ user, setUser }) {
   if (!problem) return <div className="flex items-center justify-center h-full">Loading...</div>;
 
   return (
-    <div className="flex-1 flex overflow-hidden bg-background">
-      {/* Navbar overlay for panel */}
-      <div className="absolute top-0 left-0 right-0 h-16 glass z-50 flex items-center justify-between px-6 border-b border-white/10 shadow-lg">
+    <div className="flex-1 flex flex-col overflow-hidden bg-background w-full">
+      {/* Toolbar for panel */}
+      <div className="h-14 glass z-40 flex shrink-0 items-center justify-between px-6 border-b border-white/10 shadow-sm">
         <div className="flex items-center gap-4">
           <Link to="/problems" className="text-slate-400 hover:text-white flex items-center gap-2 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -149,7 +150,7 @@ export default function CodingPanel({ user, setUser }) {
         </div>
       </div>
 
-      <div className="pt-16 flex-1 flex w-full bg-[#0F0F12]">
+      <div className="flex-1 flex w-full bg-[#0F0F12] overflow-hidden">
         {/* Left Panel */}
         <div className="w-1/2 border-r border-white/5 flex flex-col bg-[#16161A]/80 backdrop-blur-md relative overflow-hidden">
           {/* Subtle background glow */}
@@ -184,10 +185,8 @@ export default function CodingPanel({ user, setUser }) {
                     {problem.difficulty}
                   </span>
                 </div>
-                <div className="prose prose-invert max-w-none">
-                  {problem.description.split('\n').map((line, i) => (
-                    <p key={i}>{line}</p>
-                  ))}
+                <div className="prose prose-invert max-w-none text-slate-300">
+                  <ReactMarkdown>{problem.description}</ReactMarkdown>
                 </div>
               </div>
             ) : (
@@ -200,7 +199,7 @@ export default function CodingPanel({ user, setUser }) {
                     {submissions.map(s => (
                       <div key={s._id} className="bg-surface/50 p-3 rounded-lg border border-white/5 flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className={`font-semibold ${s.status === 'Accepted' ? 'text-secondary' : 'text-red-500'}`}>
+                          <span className={`font-semibold ${s.status === 'Accepted' ? 'text-secondary' : s.status === 'Partially Accepted' ? 'text-yellow-500' : 'text-red-500'}`}>
                             {s.status}
                           </span>
                           {s.score !== undefined && (
@@ -314,6 +313,7 @@ export default function CodingPanel({ user, setUser }) {
                         <div className="flex items-center justify-between">
                           <div className={`text-xl font-bold ${
                             result.status === 'Accepted' ? 'text-secondary' : 
+                            result.status === 'Partially Accepted' ? 'text-yellow-500' :
                             result.status === 'Error' ? 'text-red-500' : 'text-red-400'
                           }`}>
                             {result.status}
@@ -335,9 +335,10 @@ export default function CodingPanel({ user, setUser }) {
                         {result.results && result.results.map((r, i) => (
                           <div key={i} className="bg-black/20 rounded-lg p-3 border border-white/5">
                             <div className="flex items-center gap-2 mb-2">
-                              <span className={`w-2 h-2 rounded-full ${r.passed ? 'bg-secondary' : 'bg-red-500'}`}></span>
+                              <span className={`w-2 h-2 rounded-full ${r.passed ? 'bg-secondary' : r.similarity > 0 ? 'bg-yellow-500' : 'bg-red-500'}`}></span>
                               <span className="font-semibold text-sm">Test Case {r.test_case}</span>
-                              {r.error && <span className="text-xs text-red-400 bg-red-400/10 px-2 py-0.5 rounded">{r.error}</span>}
+                              {r.error && <span className={`text-xs px-2 py-0.5 rounded ${r.error === 'Partially Correct' ? 'text-yellow-500 bg-yellow-500/10' : 'text-red-400 bg-red-400/10'}`}>{r.error}</span>}
+                              {r.similarity !== undefined && r.similarity < 100 && r.similarity > 0 && <span className="text-xs text-yellow-500 font-bold ml-auto">{r.similarity}% Match</span>}
                             </div>
                             <div className="grid grid-cols-2 gap-4 text-xs font-mono">
                               <div>
@@ -351,7 +352,7 @@ export default function CodingPanel({ user, setUser }) {
                             </div>
                             <div className="mt-2 text-xs font-mono">
                               <div className="text-muted mb-1">Actual Output</div>
-                              <div className={`p-1.5 rounded ${r.passed ? 'bg-secondary/10 text-secondary' : 'bg-red-500/10 text-red-400'}`}>
+                              <div className={`p-1.5 rounded ${r.passed ? 'bg-secondary/10 text-secondary' : r.similarity > 0 ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-400'}`}>
                                 {r.actual || 'No output'}
                               </div>
                             </div>

@@ -10,6 +10,7 @@ import Discuss from './components/Discuss';
 import Profile from './components/Profile';
 import StudyPlan from './components/StudyPlan';
 import Quest from './components/Quest';
+import Contact from './components/Contact';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
@@ -37,7 +38,7 @@ function App() {
         .then(res => setAllProblems(res.data))
         .catch(err => console.error(err));
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     // Handle click outside search dropdown
@@ -72,12 +73,12 @@ function App() {
     setUser(null);
   };
 
-  // Hide nav on the coding panel and landing page
-  const isCodingPanel = location.pathname.startsWith('/problems/');
+  // Hide nav on the landing page and auth page
   const isLandingPage = location.pathname === '/' && !user;
   const isAuthPage = location.pathname === '/login';
+  const isContactPage = location.pathname === '/contact';
   
-  const hideNav = isCodingPanel || isLandingPage || isAuthPage;
+  const hideNav = isLandingPage || isAuthPage || isContactPage;
 
   return (
     <div className="min-h-screen flex flex-col h-screen bg-[#1A1A1A] text-[#D5D5D5]">
@@ -151,10 +152,17 @@ function App() {
                 <button className="text-gray-400 hover:text-white transition-colors">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 </button>
-                <button className={`transition-colors flex items-center gap-1 ${user.streak > 0 ? 'text-orange-500 animate-fire drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]' : 'text-gray-400 hover:text-orange-500'}`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path></svg>
-                  <span className="text-sm font-bold">{user.streak || 0}</span>
-                </button>
+                <div className="relative group flex items-center">
+                  <button className={`transition-colors flex items-center gap-1 ${user.streak > 0 ? 'text-orange-500 animate-fire drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]' : 'text-gray-400 hover:text-orange-500'}`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path></svg>
+                    <span className="text-sm font-bold">{user.streak || 0}</span>
+                  </button>
+                  <div className="absolute top-full right-1/2 translate-x-1/2 mt-4 w-48 p-3 bg-[#1A1A1A] border border-[#3A3A3A] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 text-center scale-95 group-hover:scale-100">
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#1A1A1A] border-t border-l border-[#3A3A3A] rotate-45"></div>
+                    <p className="text-sm font-bold text-orange-500 mb-1 relative z-10">Daily Streak</p>
+                    <p className="text-xs text-gray-400 relative z-10">Solve 1 question per day to keep your streak burning!</p>
+                  </div>
+                </div>
 
                 <Link to="/profile" className="w-7 h-7 hover:ring-2 hover:ring-blue-500 rounded-full bg-slate-700 flex items-center justify-center text-xs text-white border border-gray-500 cursor-pointer overflow-hidden transition-all shadow-[0_0_10px_rgba(59,130,246,0.2)]">
                   <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
@@ -188,6 +196,7 @@ function App() {
             <Route path="/home" element={user ? <HomeFeed /> : <Navigate to="/login" />} />
             <Route path="/contest" element={user ? <Contest /> : <Navigate to="/login" />} />
             <Route path="/discuss" element={user ? <Discuss /> : <Navigate to="/login" />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={!user ? <Auth setUser={setUser} /> : <Navigate to="/profile" />} />
             <Route path="/problems" element={user ? <Dashboard /> : <Navigate to="/login" />} />
             <Route path="/problems/:id" element={user ? <CodingPanel user={user} setUser={setUser} /> : <Navigate to="/login" />} />

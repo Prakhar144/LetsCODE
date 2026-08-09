@@ -72,4 +72,24 @@ router.post('/', authenticate, async (req, res) => {
   }
 });
 
+// Delete post
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    const post = await FeedPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    const authorName = req.user.username || (req.user.email ? req.user.email.split('@')[0] : 'User');
+    if (post.author !== authorName && !req.user.is_admin) {
+      return res.status(403).json({ error: 'Unauthorized to delete this post' });
+    }
+    
+    await FeedPost.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
