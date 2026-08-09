@@ -39,15 +39,18 @@ const startServer = async () => {
     let mongoUri = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/codeforge';
     let usingMemoryDb = false;
 
-    // Use a temporary in-memory database if no valid MongoDB URI is provided
-    if (mongoUri === 'memory' || mongoUri.includes('cluster0.mongodb.net') || mongoUri.includes('YOUR-ACTUAL-CLUSTER-URL')) {
+    const isRender = process.env.RENDER === 'true';
+    const isLocalhost = mongoUri.includes('localhost') || mongoUri.includes('127.0.0.1');
+    const isPlaceholder = mongoUri.includes('YOUR-ACTUAL-CLUSTER-URL');
+
+    // Use a temporary in-memory database if explicitly requested, if using a placeholder, 
+    // or if deployed on Render without a remote database configured.
+    if (mongoUri === 'memory' || isPlaceholder || (isRender && isLocalhost)) {
       console.log('Starting temporary in-memory database for Render...');
       const { MongoMemoryServer } = await import('mongodb-memory-server');
       const mongod = await MongoMemoryServer.create();
       mongoUri = mongod.getUri();
       usingMemoryDb = true;
-    } else {
-      mongoUri = mongoUri || 'mongodb://localhost:27017/codeforge';
     }
 
     await mongoose.connect(mongoUri);
