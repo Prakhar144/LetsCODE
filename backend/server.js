@@ -34,7 +34,19 @@ app.get('/', (req, res) => {
 // Sync database and start server
 const startServer = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/codeforge');
+    let mongoUri = process.env.MONGODB_URI;
+
+    // Use a temporary in-memory database if no valid MongoDB URI is provided
+    if (!mongoUri || mongoUri.includes('cluster0.mongodb.net') || mongoUri.includes('YOUR-ACTUAL-CLUSTER-URL')) {
+      console.log('Starting temporary in-memory database for Render...');
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      const mongod = await MongoMemoryServer.create();
+      mongoUri = mongod.getUri();
+    } else {
+      mongoUri = mongoUri || 'mongodb://localhost:27017/codeforge';
+    }
+
+    await mongoose.connect(mongoUri);
     console.log('MongoDB connected.');
     
     app.listen(PORT, () => {
