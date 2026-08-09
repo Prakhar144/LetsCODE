@@ -69,12 +69,20 @@ export default function CodingPanel({ user, setUser }) {
 
   const handleAction = async (actionType) => {
     if (!problem) return;
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setResult({ status: 'Authentication Required', message: 'You must be signed in to run or submit code.', results: [] });
+      setConsoleOpen(true);
+      setBottomTab('results');
+      return;
+    }
+
     setLoading(true);
     setResult(null);
     setConsoleOpen(true);
     setBottomTab('results');
     try {
-      const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/code/submit`, {
         problem_id: problem._id,
         code: code,
@@ -92,7 +100,14 @@ export default function CodingPanel({ user, setUser }) {
         }
       }
     } catch (err) {
-      setResult({ status: 'System Error', message: err.response?.data?.detail || err.message, results: [] });
+      if (err.response?.status === 401) {
+        setResult({ status: 'Session Expired', message: 'Your session has expired or is invalid. Please sign in again.', results: [] });
+        // Optionally clear token here
+        // localStorage.removeItem('token');
+        // if (setUser) setUser(null);
+      } else {
+        setResult({ status: 'System Error', message: err.response?.data?.detail || err.message, results: [] });
+      }
     } finally {
       setLoading(false);
     }
