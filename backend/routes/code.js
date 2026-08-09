@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get('/problems', async (req, res) => {
   try {
-    const problems = await Problem.find();
+    const problems = await Problem.find().select('-test_cases -description');
     res.json(problems);
   } catch (error) {
     res.status(500).json({ detail: 'Server error' });
