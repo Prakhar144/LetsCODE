@@ -5,11 +5,8 @@ import fs from 'fs';
 
 dotenv.config();
 
-const seedProblems = async () => {
+export const seedDatabaseData = async () => {
   try {
-    const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/codeforge';
-    await mongoose.connect(MONGO_URI);
-
     const rawData = fs.readFileSync(new URL('./leetcode_500.json', import.meta.url), 'utf-8');
     const dataset = JSON.parse(rawData);
 
@@ -33,16 +30,26 @@ const seedProblems = async () => {
         { upsert: true, new: true }
       );
       count++;
-      if (count % 50 === 0) {
-         console.log(`Inserted ${count} problems...`);
-      }
     }
     console.log("Database seeded successfully with 500 DSA problems.");
+  } catch (error) {
+    console.error("Failed to seed database data:", error);
+  }
+};
+
+const runStandalone = async () => {
+  try {
+    const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/codeforge';
+    await mongoose.connect(MONGO_URI);
+    await seedDatabaseData();
     process.exit(0);
   } catch (error) {
-    console.error("Failed to seed database:", error);
+    console.error("Standalone seed failed:", error);
     process.exit(1);
   }
 };
 
-seedProblems();
+// Only run standalone if this script is executed directly
+if (process.argv[1] && process.argv[1].endsWith('seed.js')) {
+  runStandalone();
+}
