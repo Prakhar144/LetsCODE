@@ -10,7 +10,6 @@ const seedProblems = async () => {
     const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/codeforge';
     await mongoose.connect(MONGO_URI);
 
-    // Read the 500 problems dataset
     const rawData = fs.readFileSync(new URL('./leetcode_500.json', import.meta.url), 'utf-8');
     const dataset = JSON.parse(rawData);
 
@@ -18,7 +17,6 @@ const seedProblems = async () => {
 
     let count = 0;
     for (let p of dataset) {
-      // Format task_id 'two-sum' to 'Two Sum'
       const title = p.task_id.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       
       const newProblem = {
@@ -39,7 +37,6 @@ const seedProblems = async () => {
          console.log(`Inserted ${count} problems...`);
       }
     }
-
     console.log("Database seeded successfully with 500 DSA problems.");
     process.exit(0);
   } catch (error) {
