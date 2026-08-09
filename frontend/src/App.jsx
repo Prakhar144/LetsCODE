@@ -34,7 +34,7 @@ function App() {
   useEffect(() => {
     if (user) {
       // Fetch problems for global search
-      axios.get('http://localhost:8000/code/problems')
+      axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/code/problems`)
         .then(res => setAllProblems(res.data))
         .catch(err => console.error(err));
     }
