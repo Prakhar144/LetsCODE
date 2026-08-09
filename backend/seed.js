@@ -12,8 +12,7 @@ export const seedDatabaseData = async () => {
 
     console.log(`Loaded ${dataset.length} problems from dataset. Seeding to database...`);
 
-    let count = 0;
-    for (let p of dataset) {
+    const bulkOps = dataset.map(p => {
       const title = p.task_id.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       
       const newProblem = {
@@ -24,14 +23,17 @@ export const seedDatabaseData = async () => {
         test_cases: JSON.stringify(p.input_output)
       };
 
-      await Problem.findOneAndUpdate(
-        { title: newProblem.title },
-        { $set: newProblem },
-        { upsert: true, returnDocument: 'after' }
-      );
-      count++;
-    }
-    console.log("Database seeded successfully with 500 DSA problems.");
+      return {
+        updateOne: {
+          filter: { title: newProblem.title },
+          update: { $set: newProblem },
+          upsert: true
+        }
+      };
+    });
+
+    await Problem.bulkWrite(bulkOps);
+    console.log(`Database seeded successfully with ${dataset.length} DSA problems.`);
   } catch (error) {
     console.error("Failed to seed database data:", error);
   }
