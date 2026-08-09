@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 import User from './models/User.js';
 import Problem from './models/Problem.js';
 import Submission from './models/Submission.js';
@@ -51,6 +52,27 @@ const startServer = async () => {
 
     await mongoose.connect(mongoUri);
     console.log('MongoDB connected.');
+    
+    // Ensure only admin@gmail.com is admin
+    const adminEmail = 'admin@gmail.com';
+    let adminUser = await User.findOne({ email: adminEmail });
+    if (!adminUser) {
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash('admin@123', salt);
+      await User.create({
+        username: 'admin',
+        email: adminEmail,
+        password_hash,
+        is_admin: true
+      });
+      console.log('Default admin user created.');
+    } else if (!adminUser.is_admin) {
+      adminUser.is_admin = true;
+      await adminUser.save();
+    }
+    
+    // Downgrade any other admins
+    await User.updateMany({ email: { $ne: adminEmail } }, { $set: { is_admin: false } });
     
     if (usingMemoryDb) {
       console.log('Populating temporary database with 500 problems...');

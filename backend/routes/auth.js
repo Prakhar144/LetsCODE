@@ -48,8 +48,7 @@ router.post('/register', async (req, res) => {
       }
     }
 
-    const userCount = await User.countDocuments();
-    const is_admin = userCount === 0;
+    const is_admin = false;
 
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
@@ -138,12 +137,11 @@ router.get('/github/callback', async (req, res) => {
     let user = await User.findOne({ $or: [{ githubId: githubUser.id.toString() }, { email: primaryEmail }] });
 
     if (!user) {
-      const userCount = await User.countDocuments();
       user = await User.create({
         username: githubUser.login + '_' + Date.now().toString().slice(-4),
         email: primaryEmail,
         githubId: githubUser.id.toString(),
-        is_admin: userCount === 0
+        is_admin: false
       });
     } else if (!user.githubId) {
       user.githubId = githubUser.id.toString();
@@ -197,12 +195,11 @@ router.get('/google/callback', async (req, res) => {
     let user = await User.findOne({ $or: [{ googleId: googleUser.id }, { email: primaryEmail }] });
 
     if (!user) {
-      const userCount = await User.countDocuments();
       user = await User.create({
         username: googleUser.name.replace(/\s+/g, '') + '_' + Date.now().toString().slice(-4),
         email: primaryEmail,
         googleId: googleUser.id,
-        is_admin: userCount === 0
+        is_admin: false
       });
     } else if (!user.googleId) {
       user.googleId = googleUser.id;
