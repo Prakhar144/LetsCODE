@@ -11,6 +11,7 @@ import Profile from './components/Profile';
 import StudyPlan from './components/StudyPlan';
 import Quest from './components/Quest';
 import Contact from './components/Contact';
+import Curriculum from './components/Curriculum';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
@@ -97,6 +98,7 @@ function App() {
             {user && (
               <div className="hidden md:flex items-center gap-2">
                 <Link to="/home" className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${location.pathname === '/home' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>Feed</Link>
+                <Link to="/curriculum" className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${location.pathname === '/curriculum' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>Curriculum</Link>
                 <Link to="/problems" className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${location.pathname === '/problems' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>Problems</Link>
                 <Link to="/contest" className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${location.pathname === '/contest' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>Contest</Link>
                 <Link to="/discuss" className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${location.pathname === '/discuss' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>Discuss</Link>
@@ -199,6 +201,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={!user ? <Auth setUser={setUser} /> : <Navigate to="/profile" />} />
             <Route path="/problems" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+            <Route path="/curriculum" element={user ? <Curriculum /> : <Navigate to="/login" />} />
             <Route path="/problems/:id" element={user ? <CodingPanel user={user} setUser={setUser} /> : <Navigate to="/login" />} />
             <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
             <Route path="/study-plan" element={user ? <StudyPlan /> : <Navigate to="/login" />} />
