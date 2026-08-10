@@ -14,8 +14,8 @@ export default function Curriculum() {
       )
     },
     {
-      id: "leetcode-75",
-      title: "LeetCode 75",
+      id: "letscode-75",
+      title: "Lets<CODE> 75",
       description: "Ace coding interview with 75 Qs. Essential questions to master DSA.",
       problems: 75,
       duration: "15 Days",
