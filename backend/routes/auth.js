@@ -5,7 +5,7 @@ import User from '../models/User.js';
 
 const router = express.Router();
 const SECRET_KEY = process.env.SECRET_KEY || 'supersecretkey_for_codeforge';
-const EXPIRES_IN = '1h';
+const EXPIRES_IN = '7d';
 
 // Middleware to protect routes
 export const authenticate = async (req, res, next) => {
