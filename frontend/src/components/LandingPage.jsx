@@ -53,9 +53,11 @@ export default function LandingPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
               </button>
             </Link>
-            <button className="px-8 py-4 rounded-full font-bold border border-white/20 hover:bg-white/5 transition-colors">
-              View Curriculum
-            </button>
+            <Link to="/curriculum">
+              <button className="px-8 py-4 rounded-full font-bold border border-white/20 hover:bg-white/5 transition-colors">
+                View Curriculum
+              </button>
+            </Link>
           </div>
         </div>
 
@@ -85,6 +87,21 @@ export default function LandingPage() {
           </div>
         </div>
       </main>
+
+      {/* Our Aim Section */}
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-10 py-8 md:py-16">
+        <div className="glass-card p-10 md:p-16 text-center relative overflow-hidden border border-white/10 group hover:border-blue-500/30 transition-all">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+          
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-6 tracking-tight">
+            Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Aim</span>
+          </h2>
+          <p className="text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            At Lets&lt;CODE&gt;, our aim is to democratize algorithmic education. We believe that mastering data structures and algorithms shouldn't be a barrier to entry for aspiring software engineers, but a structured, engaging, and enjoyable journey. We provide a comprehensive, community-driven platform designed to make technical interview preparation accessible to everyone.
+          </p>
+        </div>
+      </div>
 
       {/* Bottom Features */}
       <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto w-full px-10 pb-24 mt-12">
