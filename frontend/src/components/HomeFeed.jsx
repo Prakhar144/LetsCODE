@@ -13,6 +13,21 @@ export default function HomeFeed() {
   const [imageUrl, setImageUrl] = useState('');
   const [isPosting, setIsPosting] = useState(false);
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File is too large. Please select an image under 5MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const getCurrentUser = () => {
     try {
       const token = localStorage.getItem('token');
@@ -108,11 +123,40 @@ export default function HomeFeed() {
                 <svg className="w-5 h-5 absolute left-3 top-2.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 <input
                   type="text"
-                  className="w-full bg-black/40 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500 transition-colors shadow-inner"
-                  placeholder="Paste an Image URL to showcase a design..."
-                  value={imageUrl}
+                  className="w-full bg-black/40 border border-white/10 rounded-lg pl-10 pr-12 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500 transition-colors shadow-inner"
+                  placeholder={imageUrl && imageUrl.startsWith('data:image') ? "Image selected" : "Paste an Image URL to showcase a design..."}
+                  value={imageUrl && imageUrl.startsWith('data:image') ? '' : imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
+                  readOnly={imageUrl && imageUrl.startsWith('data:image')}
                 />
+                <input 
+                  type="file" 
+                  id="image-upload" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleImageUpload} 
+                />
+                {imageUrl && imageUrl.startsWith('data:image') ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageUrl('');
+                      document.getElementById('image-upload').value = '';
+                    }}
+                    className="absolute right-2 top-1.5 p-1 text-gray-400 hover:text-rose-500 cursor-pointer bg-white/5 hover:bg-white/10 rounded transition-colors"
+                    title="Remove Image"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                ) : (
+                  <label 
+                    htmlFor="image-upload" 
+                    className="absolute right-2 top-1.5 p-1 text-gray-400 hover:text-white cursor-pointer bg-white/5 hover:bg-white/10 rounded transition-colors"
+                    title="Upload Image"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                  </label>
+                )}
               </div>
               <button 
                 type="submit"
