@@ -129,7 +129,7 @@ export default function Curriculum() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {studyPlans.map((plan) => (
-              <div key={plan.id} className="glass-card group hover:border-white/20 transition-all duration-300 cursor-pointer overflow-hidden relative h-full flex flex-col">
+              <Link to="/problems" key={plan.id} className="glass-card group hover:border-white/20 transition-all duration-300 cursor-pointer overflow-hidden relative h-full flex flex-col block text-left">
                 <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${plan.color} opacity-10 rounded-full blur-[40px] group-hover:opacity-30 transition-opacity`}></div>
                 
                 <div className="p-6 flex-1 flex flex-col">
@@ -156,7 +156,7 @@ export default function Curriculum() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
