@@ -85,9 +85,6 @@ export default function CalendarWidget({ streak = 0 }) {
     );
   }
 
-  // Calculate current week of the month (1-5)
-  const currentWeekOfMonth = Math.ceil((currentDate.getDate() + getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth())) / 7);
-
   return (
     <div className="bg-[#282828] rounded-xl p-5 border border-[#3A3A3A] shadow-lg">
       <div className="flex justify-between items-center mb-4">
@@ -110,29 +107,7 @@ export default function CalendarWidget({ streak = 0 }) {
         {cells}
       </div>
       
-      <div className="mt-4 pt-4 border-t border-white/5">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-sm font-bold text-yellow-500 flex items-center gap-1">
-            Weekly Premium
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          </span>
-          <span className="text-xs text-slate-500">6 days left</span>
-        </div>
-        <div className="flex justify-between text-xs font-bold text-yellow-600">
-          {[1, 2, 3, 4, 5].map(w => (
-            <span key={w} className={w === currentWeekOfMonth ? "bg-yellow-500 text-black px-2 py-0.5 rounded-full" : ""}>
-              W{w}
-            </span>
-          ))}
-        </div>
-        <div className="flex justify-between items-center mt-4">
-          <span className="text-xs text-slate-400 flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            0 Redeem
-          </span>
-          <span className="text-xs text-slate-500 hover:text-white cursor-pointer transition-colors">Rules</span>
-        </div>
-      </div>
+
     </div>
   );
 }
