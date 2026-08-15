@@ -98,6 +98,21 @@ export default function HomeFeed() {
     }
   };
 
+  const handleLikePost = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/feed/${id}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchFeed();
+    } catch (err) {
+      console.error('Failed to like post', err);
+      if (err.response && err.response.status === 401) {
+        alert('Please log in to like.');
+      }
+    }
+  };
+
   return (
     <div className="flex-1 overflow-y-auto bg-[#0F0F12] p-8 custom-scrollbar">
       <div className="max-w-2xl mx-auto space-y-8">
@@ -197,7 +212,7 @@ export default function HomeFeed() {
                       </div>
                     )}
                     <div className="flex items-center gap-4 text-gray-500 border-t border-white/5 pt-4 mt-2">
-                      <button className="flex items-center gap-1.5 hover:text-rose-500 transition-colors group">
+                      <button onClick={() => handleLikePost(item.id)} className="flex items-center gap-1.5 hover:text-rose-500 transition-colors group">
                         <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                         <span className="text-sm font-medium">{item.likes || 0}</span>
                       </button>

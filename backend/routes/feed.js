@@ -73,6 +73,22 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 // Delete post
+router.post('/:id/like', authenticate, async (req, res) => {
+  try {
+    const post = await FeedPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    post.likes = (post.likes || 0) + 1;
+    await post.save();
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete post
 router.delete('/:id', authenticate, async (req, res) => {
   try {
     const post = await FeedPost.findById(req.params.id);
